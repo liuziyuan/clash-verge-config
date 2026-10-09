@@ -1,6 +1,6 @@
 # Profile Enhancement Merge Template for Clash Verge
 # 黑名单分流模式:基于 Loyalsoldier/clash-rules(https://github.com/Loyalsoldier/clash-rules)
-# 国内/Apple 直连,被墙网站(GFWList+proxy)走 PROXY,漏网流量直连兜底(MATCH,DIRECT)
+# 国内/Apple 直连,被墙网站(GFWList+proxy)走 PROXY,漏网流量走代理兜底(MATCH,PROXY)
 
 profile:
   store-selected: true
@@ -116,6 +116,13 @@ rules:
   # VS Code 全家族进程(Code/Code Helper/Renderer/copilot-runtime/ShipIt)直连:
   # 更新与扩展 CDN(vscode-cdn.net 等)微软在国内有节点,直连即可,不必绕行代理
   - PROCESS-PATH-REGEX,(?i)/Applications/Visual Studio Code\.app,DIRECT
+  # ===== 国内应用进程直连:根治杂散流量偷跑代理 =====
+  # 国产应用的第三方域名(海外推送/CDN/SDK)会命中 gfw/proxy 规则集浪费代理流量,
+  # 进程级直连一劳永逸;新装国内应用若发现偷跑(命令行执行 proxy-leak 查看),照此追加
+  - PROCESS-PATH-REGEX,(?i)/Applications/wpsoffice\.app,DIRECT
+  - PROCESS-PATH-REGEX,(?i)/Applications/WeChat\.app,DIRECT
+  - PROCESS-PATH-REGEX,(?i)/Applications/企业微信\.app,DIRECT
+  - PROCESS-PATH-REGEX,(?i)/Applications/GienTechEmail\.app,DIRECT
   # ===== Microsoft Teams 直连(置于链首,优先于所有 RULE-SET) =====
   # 进程级:Teams 主进程及 WebView Helper 全家族,无论目标域名一律直连
   - PROCESS-PATH-REGEX,(?i)/Applications/Microsoft Teams\.app,DIRECT
@@ -141,4 +148,4 @@ rules:
   - RULE-SET,telegramcidr,PROXY
   - GEOIP,LAN,DIRECT
   - GEOIP,CN,DIRECT
-  - MATCH,DIRECT
+  - MATCH,PROXY

@@ -3,19 +3,20 @@
 Clash Verge Rev 的覆写配置仓库(macOS)。仓库文件通过 **symlink** 链接到应用配置目录,本仓库是唯一编辑入口,应用直接读取链接文件。
 
 - 应用配置目录:`~/Library/Application Support/io.github.clash-verge-rev.clash-verge-rev/`
-- 分流方案:Loyalsoldier/clash-rules 黑名单模式(国内直连、被墙走代理、`MATCH,DIRECT` 漏网直连兜底)
+- 分流方案:Loyalsoldier/clash-rules 黑名单模式(国内直连、被墙走代理、`MATCH,PROXY` 漏网走代理兜底)
 
 ## 追踪的文件(与配置目录同构)
 
 | 仓库路径 | 指向(配置目录内) | 作用 |
 |---|---|---|
-| `profiles/Merge.yaml` | `profiles/Merge.yaml`(symlink) | 全局覆写:32 条规则链(5 条 P&G 内网直连 + 4 条 GitHub/Copilot 代理例外 + 1 条 VS Code 进程直连 + 5 条 Teams 直连 + 17 条黑名单规则)+ 12 个 Loyalsoldier rule-providers(jsDelivr CDN,经 PROXY 组拉取,24h 更新) |
+| `profiles/Merge.yaml` | `profiles/Merge.yaml`(symlink) | 全局覆写:36 条规则链(5 条 P&G 内网直连 + 4 条 GitHub/Copilot 代理例外 + 1 条 VS Code 进程直连 + 4 条国内应用进程直连 + 5 条 Teams 直连 + 17 条黑名单规则)+ 12 个 Loyalsoldier rule-providers(jsDelivr CDN,经 PROXY 组拉取,24h 更新) |
 | `profiles/g121H3lCtYp4.yaml` | 同名 symlink | SDKDNS 订阅专属「编辑代理组」覆写:prepend `PROXY` 组 |
 | `profiles/rwwrvXpHF0G5.yaml` | 同名 symlink | SDKDNS 订阅专属「编辑规则」覆写(空模板) |
 | `profiles/pqP2VQo6pSH0.yaml` | 同名 symlink | SDKDNS 订阅专属「编辑代理」覆写(空模板) |
 | `profiles/mhITyZvPMAbR.yaml` | 同名 symlink | SDKDNS 订阅专属 merge 覆写(空模板) |
 | `profiles/sRc4HDbP346A.js` / `Script.js` | 同名 symlink | 订阅专属/全局脚本覆写(空模板) |
 | `dns_config.yaml` | 同名 symlink | DNS 覆写(fake-ip),UI「DNS 覆写」设置页读取 |
+| `shell/proxy-leak.zsh` | `~/.zsh-proxy-leak.zsh`(symlink),`.zshrc` 中 source | `proxy-leak` 命令:按进程统计走代理的连接流量,定位国内应用"偷跑" |
 | `verge.yaml` | **拷贝同步,非 symlink** | Verge 应用设置(端口/TUN/系统代理 bypass/界面)。Verge 退出/改设置时会用「替换文件」方式重写配置目录中的它,symlink 会被打断,故只能改完仓库后手动拷贝过去 |
 
 ## 明确不入库的文件(安全红线)
@@ -65,6 +66,7 @@ repo="<clone 位置>/clash-verge-config"
 # verge.yaml 特殊:Verge 会重写该文件,symlink 必断,用拷贝同步
 cp "$repo/verge.yaml" "$conf/verge.yaml"
 ln -sf "$repo/dns_config.yaml" "$conf/dns_config.yaml"
+ln -sf "$repo/shell/proxy-leak.zsh" "$HOME/.zsh-proxy-leak.zsh"   # proxy-leak 命令(.zshrc 中 source)
 for f in Merge.yaml g121H3lCtYp4.yaml rwwrvXpHF0G5.yaml pqP2VQo6pSH0.yaml mhITyZvPMAbR.yaml sRc4HDbP346A.js Script.js; do
   ln -sf "$repo/profiles/$f" "$conf/profiles/$f"
 done
