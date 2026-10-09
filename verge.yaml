@@ -31,7 +31,9 @@ profile_dns_settings:
   R9VmDmP4ShuE:
     enabled: false
 use_default_bypass: true
-system_proxy_bypass: null
+# 系统代理例外:客户 VPN 内网/公司域名不走 mihomo,由系统 DNS+路由(utun5)直达
+# 逗号分隔(sysproxy-rs 仅按逗号拆分);与默认 bypass(use_default_bypass)自动合并
+system_proxy_bypass: "*.cn-pgcloud.com,*.pg.com.cn,*.cn-x-cloud-pg.com.cn,*.cn-xnp-cloud-pg.com.cn,*.pg.com"
 proxy_guard_duration: 30
 proxy_auto_config: false
 pac_file_content: |

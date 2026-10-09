@@ -1,6 +1,6 @@
 # Profile Enhancement Merge Template for Clash Verge
 # 黑名单分流模式:基于 Loyalsoldier/clash-rules(https://github.com/Loyalsoldier/clash-rules)
-# 国内/Apple 直连,被墙网站(GFWList+proxy)走 PROXY,漏网流量走代理
+# 国内/Apple 直连,被墙网站(GFWList+proxy)走 PROXY,漏网流量直连兜底(MATCH,DIRECT)
 
 profile:
   store-selected: true
@@ -98,6 +98,24 @@ rule-providers:
 
 # 黑名单规则链:整体替换订阅自带规则
 rules:
+  # ===== P&G 客户内网/公司域名直连(置于链首,优先于一切 RULE-SET) =====
+  # Ivanti VPN 内网系统:浏览器经系统代理 bypass 直连(见 verge.yaml system_proxy_bypass);
+  # 此处 DIRECT 保证任何入口都不把这些域名送进 PROXY(内网 IP 经代理节点不可达,
+  # 且 vpn.pg.com 网关流量绕道代理有被风控踢线的风险)
+  - DOMAIN-SUFFIX,cn-pgcloud.com,DIRECT
+  - DOMAIN-SUFFIX,pg.com.cn,DIRECT
+  - DOMAIN-SUFFIX,cn-x-cloud-pg.com.cn,DIRECT
+  - DOMAIN-SUFFIX,cn-xnp-cloud-pg.com.cn,DIRECT
+  - DOMAIN-SUFFIX,pg.com,DIRECT
+  # ===== Microsoft Teams 直连(置于链首,优先于所有 RULE-SET) =====
+  # 进程级:Teams 主进程及 WebView Helper 全家族,无论目标域名一律直连
+  - PROCESS-PATH-REGEX,(?i)/Applications/Microsoft Teams\.app,DIRECT
+  - PROCESS-NAME,Microsoft Teams,DIRECT
+  # 域名级:浏览器网页版 Teams 直连(进程规则覆盖不到浏览器)
+  - DOMAIN-SUFFIX,teams.microsoft.com,DIRECT
+  - DOMAIN-SUFFIX,teams.live.com,DIRECT
+  - DOMAIN-SUFFIX,svc.ms,DIRECT
+  # ===== 原有黑名单规则链 =====
   - RULE-SET,applications,DIRECT
   - DOMAIN,clash.razord.top,DIRECT
   - DOMAIN,yacd.haishan.me,DIRECT
@@ -114,4 +132,4 @@ rules:
   - RULE-SET,telegramcidr,PROXY
   - GEOIP,LAN,DIRECT
   - GEOIP,CN,DIRECT
-  - MATCH,PROXY
+  - MATCH,DIRECT
