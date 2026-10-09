@@ -107,6 +107,15 @@ rules:
   - DOMAIN-SUFFIX,cn-x-cloud-pg.com.cn,DIRECT
   - DOMAIN-SUFFIX,cn-xnp-cloud-pg.com.cn,DIRECT
   - DOMAIN-SUFFIX,pg.com,DIRECT
+  # ===== VS Code 进程直连 =====
+  # GitHub/Copilot 系域名例外:必须走 PROXY(国内直连不通),须置于进程规则之前
+  - DOMAIN-SUFFIX,github.com,PROXY
+  - DOMAIN-SUFFIX,githubusercontent.com,PROXY
+  - DOMAIN-SUFFIX,githubassets.com,PROXY
+  - DOMAIN-SUFFIX,githubcopilot.com,PROXY
+  # VS Code 全家族进程(Code/Code Helper/Renderer/copilot-runtime/ShipIt)直连:
+  # 更新与扩展 CDN(vscode-cdn.net 等)微软在国内有节点,直连即可,不必绕行代理
+  - PROCESS-PATH-REGEX,(?i)/Applications/Visual Studio Code\.app,DIRECT
   # ===== Microsoft Teams 直连(置于链首,优先于所有 RULE-SET) =====
   # 进程级:Teams 主进程及 WebView Helper 全家族,无论目标域名一律直连
   - PROCESS-PATH-REGEX,(?i)/Applications/Microsoft Teams\.app,DIRECT

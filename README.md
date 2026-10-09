@@ -9,7 +9,7 @@ Clash Verge Rev 的覆写配置仓库(macOS)。仓库文件通过 **symlink** �
 
 | 仓库路径 | 指向(配置目录内) | 作用 |
 |---|---|---|
-| `profiles/Merge.yaml` | `profiles/Merge.yaml`(symlink) | 全局覆写:27 条规则链(5 条 P&G 内网直连 + 5 条 Teams 直连前置规则 + 17 条黑名单规则)+ 12 个 Loyalsoldier rule-providers(jsDelivr CDN,经 PROXY 组拉取,24h 更新) |
+| `profiles/Merge.yaml` | `profiles/Merge.yaml`(symlink) | 全局覆写:32 条规则链(5 条 P&G 内网直连 + 4 条 GitHub/Copilot 代理例外 + 1 条 VS Code 进程直连 + 5 条 Teams 直连 + 17 条黑名单规则)+ 12 个 Loyalsoldier rule-providers(jsDelivr CDN,经 PROXY 组拉取,24h 更新) |
 | `profiles/g121H3lCtYp4.yaml` | 同名 symlink | SDKDNS 订阅专属「编辑代理组」覆写:prepend `PROXY` 组 |
 | `profiles/rwwrvXpHF0G5.yaml` | 同名 symlink | SDKDNS 订阅专属「编辑规则」覆写(空模板) |
 | `profiles/pqP2VQo6pSH0.yaml` | 同名 symlink | SDKDNS 订阅专属「编辑代理」覆写(空模板) |
