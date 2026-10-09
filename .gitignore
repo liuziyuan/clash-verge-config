@@ -1,0 +1,10 @@
+# 保险性忽略:凭证文件即使误放入仓库也绝不能被提交
+R9VmDmP4ShuE.yaml
+profiles.yaml
+clash-verge.yaml
+config.yaml
+*.mmdb
+*.dat
+*.db
+*.lock
+.DS_Store
