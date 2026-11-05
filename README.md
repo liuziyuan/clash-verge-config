@@ -11,7 +11,7 @@ Clash Verge Rev 的覆写配置仓库(macOS)。仓库文件通过 **symlink** �
 |---|---|---|
 | `profiles/Merge.yaml` | `profiles/Merge.yaml`(symlink) | 全局覆写:36 条规则链(5 条 P&G 内网直连 + 4 条 GitHub/Copilot 代理例外 + 1 条 VS Code 进程直连 + 4 条国内应用进程直连 + 5 条 Teams 直连 + 17 条黑名单规则)+ 12 个 Loyalsoldier rule-providers(jsDelivr CDN,经 PROXY 组拉取,24h 更新) |
 | `profiles/Script.js` | 同名 symlink | 全局脚本覆写:运行时自动注入 `PROXY` 统一选择组(动态收集订阅策略组作选项,任何订阅零配置生效,幂等防重复定义) |
-| `dns_config.yaml` | 同名 symlink | DNS 覆写(fake-ip),UI「DNS 覆写」设置页读取 |
+| `dns_config.yaml` | 同名 symlink | DNS 覆写(fake-ip + 客户内网域名的 fake-ip 例外与 VPN DNS 策略)。**须在 Verge「Clash 设置 → DNS 覆写」打开才生效,且按订阅生效** |
 | `shell/proxy-leak.zsh` | `~/.zsh-proxy-leak.zsh`(symlink),`.zshrc` 中 source | `proxy-leak` 命令:按进程统计走代理的连接流量,定位国内应用"偷跑" |
 | `verge.yaml` | **拷贝同步,非 symlink** | Verge 应用设置(端口/TUN/系统代理 bypass/界面)。Verge 退出/改设置时会用「替换文件」方式重写配置目录中的它,symlink 会被打断,故只能改完仓库后手动拷贝过去 |
 
@@ -24,24 +24,18 @@ Clash Verge Rev 的覆写配置仓库(macOS)。仓库文件通过 **symlink** �
 | `clash-verge.yaml`、`config.yaml` | 运行时生成物(前者含节点凭证) |
 | `*.mmdb`、`*.dat`、`cache.db`、`singleton-instance.*`、`logs/`、`service-logs/` | 自动下载数据与运行时状态 |
 
-## 客户 VPN 内网域名清单(与 Ivanti Secure 共存的关键配置)
+## 客户 VPN(Ivanti)内网分流
 
-工作中需同时使用客户 VPN(Ivanti Secure)。客户内网域名**必须绕开 mihomo**:TUN 的 `auto-detect-interface` 会把 mihomo 出站绑到默认物理网卡,内网 IP(10/8)经它发出不可达。两处配置需保持同步:
+完整方案、实测数据、验证方法与已知坑见 **[VPN-LAN.md](VPN-LAN.md)**。
 
-1. `verge.yaml` → `system_proxy_bypass`:域名通配,逗号分隔(sysproxy 仅按逗号拆分),浏览器不走 7897,由系统 DNS(VPN 下发)+ 路由(utun5)直达;
-2. `profiles/Merge.yaml` → `rules:` 链首 `DOMAIN-SUFFIX,...,DIRECT`:兜底防误入 PROXY。
+核心结论(细节以 VPN-LAN.md 为准):
 
-| 后缀 | 说明 |
-|---|---|
-| `cn-pgcloud.com` | 内网开发平台(github/jenkins/nexus/rancher/nezha 等) |
-| `pg.com.cn` | 公司内部系统(confluence/jira 等,含公网部署的阿里云系统) |
-| `cn-x-cloud-pg.com.cn` | 合作方云平台(grafana/kibana/skywalking 等) |
-| `cn-xnp-cloud-pg.com.cn` | 合作方云平台(job-admin/rancher 等) |
-| `pg.com` | vpn.pg.com(VPN 网关,必须 DIRECT 防止绕道代理被风控)+ search domain 系 |
+- 客户内网**是公网地址段**(`10/8`、`131.190.x`、`137.176.0.0/15` 一带、`143.x`、`155.x`、`192.44.x` 等共 127 条动态路由,出口 `utun5`),不是 RFC1918——所以 **TUN 路由排除方案不适用**(会误伤公网,且路由每次连接可能变化);
+- 需要三层配合:系统代理 bypass + 规则链首 DIRECT + **DNS 层**(`dns_config.yaml` 的 `fake-ip-filter` 与 `nameserver-policy`);
+- **`vpn.pg.com` 不能绑定 VPN DNS**,否则会造成"解析不了网关 → 连不上 VPN"的死锁;
+- 验证不要用 `dig @127.0.0.1`(TUN 劫持 53 端口会给假超时),用 `curl -sv` 看实际连接 IP。
 
-新增客户/后缀时两处同步追加,先在 VPN 在线时用 `dscacheutil -q host -a name <域名>` 确认公司 DNS 能解析出真实 IP(非 198.18.x fake-ip)再加。裸 IP(10.x、192.168.x)无需配置,默认 bypass 的 CIDR 对字面 IP 生效。
-
-已知限制:显式强制走 mihomo(`curl -x 127.0.0.1:7897`)的内网流量仍不可达,这是 macOS TUN 防环(出站绑 en0)与 VPN 路由共存的固有限制;断 VPN 时 bypass 域名解析落到 fake-ip,站点不可达属预期。
+新增客户后缀时三处同步追加:`verge.yaml` 的 `system_proxy_bypass`、`Merge.yaml` 的 `rules`、`dns_config.yaml` 的 `fake-ip-filter`(纯内网域还要加 `nameserver-policy`)。
 
 ## 使用注意
 
@@ -68,4 +62,5 @@ for f in Merge.yaml Script.js; do
 done
 ```
 
-4. 在 Verge UI 中重新激活订阅(覆写文件按 uid 关联到订阅);**改过 verge.yaml 时需完全重启 Verge** 才会重读。
+4. 在 Verge UI 中重新激活订阅(覆写文件按 uid 关联到订阅);**改过 verge.yaml 时需完全重启 Verge** 才会重读;
+5. 按 [VPN-LAN.md](VPN-LAN.md) 的「新机器恢复 Checklist」开启 TUN 与 DNS 覆写(先断 VPN),并逐项验证内网/外网连通。
