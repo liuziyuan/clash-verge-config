@@ -5,9 +5,11 @@
 profile:
   store-selected: true
 
-# PROXY 统一选择组在订阅专属「编辑代理组」覆写(g121H3lCtYp4.yaml)中以
-# prepend 方式追加 —— 全局 Merge 的 prepend-proxy-groups 键在 verge 2.5.7
-# 不生效,会被当作未知顶层键透传进 runtime,故不在此定义。
+# PROXY 统一选择组由全局 Script.js 在运行时自动注入(动态收集订阅策略组,
+# 任何订阅零配置生效),本文件不定义组。
+# 历史:verge 2.5.7 的全局 Merge 不支持 prepend-proxy-groups 特殊键(会被当作
+# 未知顶层键透传进 runtime);曾改用订阅专属 groups 覆写 prepend,但换订阅后
+# uid 变化导致覆写失联、PROXY 缺失、配置校验失败,已于 2026-11-05 废弃。
 
 # 规则集:jsDelivr CDN,经 PROXY 组拉取,每 24h 自动更新
 rule-providers:

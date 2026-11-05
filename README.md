@@ -10,11 +10,7 @@ Clash Verge Rev 的覆写配置仓库(macOS)。仓库文件通过 **symlink** �
 | 仓库路径 | 指向(配置目录内) | 作用 |
 |---|---|---|
 | `profiles/Merge.yaml` | `profiles/Merge.yaml`(symlink) | 全局覆写:36 条规则链(5 条 P&G 内网直连 + 4 条 GitHub/Copilot 代理例外 + 1 条 VS Code 进程直连 + 4 条国内应用进程直连 + 5 条 Teams 直连 + 17 条黑名单规则)+ 12 个 Loyalsoldier rule-providers(jsDelivr CDN,经 PROXY 组拉取,24h 更新) |
-| `profiles/g121H3lCtYp4.yaml` | 同名 symlink | SDKDNS 订阅专属「编辑代理组」覆写:prepend `PROXY` 组 |
-| `profiles/rwwrvXpHF0G5.yaml` | 同名 symlink | SDKDNS 订阅专属「编辑规则」覆写(空模板) |
-| `profiles/pqP2VQo6pSH0.yaml` | 同名 symlink | SDKDNS 订阅专属「编辑代理」覆写(空模板) |
-| `profiles/mhITyZvPMAbR.yaml` | 同名 symlink | SDKDNS 订阅专属 merge 覆写(空模板) |
-| `profiles/sRc4HDbP346A.js` / `Script.js` | 同名 symlink | 订阅专属/全局脚本覆写(空模板) |
+| `profiles/Script.js` | 同名 symlink | 全局脚本覆写:运行时自动注入 `PROXY` 统一选择组(动态收集订阅策略组作选项,任何订阅零配置生效,幂等防重复定义) |
 | `dns_config.yaml` | 同名 symlink | DNS 覆写(fake-ip),UI「DNS 覆写」设置页读取 |
 | `shell/proxy-leak.zsh` | `~/.zsh-proxy-leak.zsh`(symlink),`.zshrc` 中 source | `proxy-leak` 命令:按进程统计走代理的连接流量,定位国内应用"偷跑" |
 | `verge.yaml` | **拷贝同步,非 symlink** | Verge 应用设置(端口/TUN/系统代理 bypass/界面)。Verge 退出/改设置时会用「替换文件」方式重写配置目录中的它,symlink 会被打断,故只能改完仓库后手动拷贝过去 |
@@ -50,8 +46,8 @@ Clash Verge Rev 的覆写配置仓库(macOS)。仓库文件通过 **symlink** �
 ## 使用注意
 
 - **改配置直接改本仓库文件**(或在 Verge UI 中编辑,UI 写入的也是 symlink 目标),改完在 Verge 中重新激活订阅生效。
-- **verge 2.5.7 的坑**:全局 Merge 不支持 `prepend-proxy-groups` 等 `prepend-*` 特殊键(会被当作未知键透传进 runtime 而不生效);追加代理组必须走订阅专属 groups 覆写(`prepend/append/delete` 格式),普通字段覆盖(如 `rules:`、`rule-providers:`)正常生效。
-- **新增订阅时**:订阅本体和 `profiles.yaml` 仍不入库;若要为新订阅加覆写,在配置目录 `profiles/` 下新建对应 uid 文件,再 `ln -s` 进本仓库。
+- **verge 2.5.7 的坑**:全局 Merge 不支持 `prepend-proxy-groups` 等 `prepend-*` 特殊键(会被当作未知键透传进 runtime 而不生效),普通字段覆盖(如 `rules:`、`rule-providers:`)正常生效。追加代理组走全局 Script.js 注入(2026-11-05 起;此前用订阅专属 groups 覆写 prepend,但换订阅后 uid 变化导致覆写失联、`PROXY` 缺失、配置校验失败,已废弃)。
+- **新增订阅时**:零配置——`PROXY` 组由全局 Script.js 自动注入,导入订阅后重新激活即可。仅当确需订阅专属覆写时,才在配置目录 `profiles/` 下新建对应 uid 文件再 `ln -s` 进本仓库(注意 uid 随订阅重导而变,专属覆写易失联,能用全局方案就不用专属)。
 - 内核为 root 服务模式,调试通道:`curl --unix-socket /var/run/clash-verge-service/users/501/verge-mihomo.sock http://localhost/rules`(另可 `/proxies`、`/connections`、`PUT /proxies/<组名>` 切节点)。
 
 ## 新机器恢复步骤
@@ -67,7 +63,7 @@ repo="<clone 位置>/clash-verge-config"
 cp "$repo/verge.yaml" "$conf/verge.yaml"
 ln -sf "$repo/dns_config.yaml" "$conf/dns_config.yaml"
 ln -sf "$repo/shell/proxy-leak.zsh" "$HOME/.zsh-proxy-leak.zsh"   # proxy-leak 命令(.zshrc 中 source)
-for f in Merge.yaml g121H3lCtYp4.yaml rwwrvXpHF0G5.yaml pqP2VQo6pSH0.yaml mhITyZvPMAbR.yaml sRc4HDbP346A.js Script.js; do
+for f in Merge.yaml Script.js; do
   ln -sf "$repo/profiles/$f" "$conf/profiles/$f"
 done
 ```
