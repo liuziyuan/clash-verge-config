@@ -14,7 +14,7 @@ enable_memory_usage: true
 enable_group_icon: true
 pause_render_traffic_stats_on_blur: true
 common_tray_icon: false
-tray_icon: monochrome
+tray_icon: colorful
 menu_icon: monochrome
 notice_position: top-right
 collapse_navbar: false
@@ -30,6 +30,8 @@ enable_dns_settings: false
 profile_dns_settings:
   R9VmDmP4ShuE:
     enabled: false
+  RGtTw3uKJGIT:
+    enabled: true
 use_default_bypass: true
 # 系统代理例外:客户 VPN 内网/公司域名不走 mihomo,由系统 DNS+路由(utun5)直达
 # 逗号分隔(sysproxy-rs 仅按逗号拆分);与默认 bypass(use_default_bypass)自动合并

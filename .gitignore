@@ -1,5 +1,10 @@
 # 保险性忽略:凭证文件即使误放入仓库也绝不能被提交
-R9VmDmP4ShuE.yaml
+# profiles/ 下只有可公开的覆写配置入库;订阅本体(uid 随机、换订阅即变)一律忽略,
+# 避免换订阅后旧规则失配导致凭证被提交
+profiles/*.yaml
+profiles/*.js
+!profiles/Merge.yaml
+!profiles/Script.js
 profiles.yaml
 clash-verge.yaml
 config.yaml

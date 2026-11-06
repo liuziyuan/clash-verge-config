@@ -1,7 +1,8 @@
 # Clash Verge DNS Config
 #
-# 注意:本文件只有在 Verge 设置里勾选「使用自定义 DNS」后才会生效。
-# 当前默认的 DNS 由 Verge 内核托管,本文件的配置不会参与解析。
+# 本文件通过 Verge「Clash 设置 → DNS 覆写」启用,按订阅生效
+# (状态记录在 verge.yaml 的 profile_dns_settings.<uid>.enabled)。
+# 当前订阅已启用,配置已合入运行时。
 
 dns:
   enable: true
@@ -48,10 +49,9 @@ dns:
   fallback: []
   # ===== 内网域名固定交给客户 VPN 的 DNS 解析 =====
   # 192.44.212.206 / 192.44.120.10 由 Ivanti 下发,系统路由指向 utun5。
-  # 实测:仅 VPN 已连接时可达;未连接时这些域名解析失败,属于预期行为
-  # (内网域名本来就只有连上 VPN 才能用,宁可明确失败也不要落到公共 DNS 拿错 IP)。
-  # 注意不要改成 system:实测 mihomo 直接向这两个地址查询是通的,
-  # 系统解析器反而可能被全局 DNS 覆盖,行为更不可控。
+  # 2026-11-06 复核:mihomo 自身向这两个地址查询会返回 context deadline exceeded,
+  # 因此经 TUN 的内网流量不要依赖本策略;实际可用的是系统解析器(直连 VPN DNS 走 utun5)。
+  # 本段保留为 TUN/代理场景的意图声明,值本身正确,勿随意改成 system(未验证其行为)。
   nameserver-policy:
     '+.cn-pgcloud.com':
     - 192.44.212.206
